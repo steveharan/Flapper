@@ -18,7 +18,12 @@ app.config([
           .state('posts', {
             url: '/posts/{id}',
             templateUrl: '/posts.html',
-            controller: 'PostsCtrl'
+            controller: 'PostsCtrl',
+              resolve: {
+                  post: ['$stateParams', 'posts', function($stateParams, posts) {
+                      return posts.get($stateParams.id);
+                  }]
+              }
           });
 
       $urlRouterProvider.otherwise('home');
@@ -51,10 +56,10 @@ app.controller('MainCtrl', [
 
 app.controller('PostsCtrl', [
     '$scope',
-    '$stateParams',
     'posts',
-    function($scope, $stateParams, posts) {
-      $scope.post = posts.posts[$stateParams.id];
+    'post',
+    function($scope, posts, post) {
+      $scope.post = post;
 
       $scope.addComment = function() {
         if (!$scope.body || $scope.body === '') {
@@ -83,5 +88,10 @@ app.factory('posts', ['$http', function($http){
             angular.copy(data, o.posts);
         });
     }
+    o.get = function(id) {
+        return $http.get('/posts/' + id).then(function(res){
+            return res.data;
+        });
+    };
   return o;
 }]);
